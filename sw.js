@@ -1,4 +1,4 @@
-const CACHE_NAME = 'tindahan-v11';
+const CACHE_NAME = 'tindahan-v12';
 const APP_SHELL = ['./index.html', './styles.css', './app.js', './manifest.json'];
 const STATIC_ASSETS = ['./icon-192.png', './icon-512.png'];
 const ASSETS = [...APP_SHELL, ...STATIC_ASSETS];
