@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Tindahan</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#2B6777">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Tindahan">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="topbar">
+  <span class="bolt bolt-l"></span><span class="bolt bolt-r"></span>
+  <div class="topbar-row">
+    <div>
+      <div class="store-sign signage" id="storeNameLabel">Ka Nena's Tindahan</div>
+      <div class="store-tagline" id="topbarSub">Loading your store…</div>
+    </div>
+    <div style="display:flex; align-items:center; gap:8px;">
+      <button class="settings-gear" onclick="goTo('settings')" aria-label="Settings">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06A1.65 1.65 0 004.6 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06A1.65 1.65 0 009 4.6a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+      </button>
+      <span class="open-tag">● Open</span>
+    </div>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div class="view active" id="view-dashboard">
+  <div id="onboardingCard" style="display:none;"></div>
+  <div id="backupReminderCard" style="display:none;"></div>
+
+  <div class="hero-tag">
+    <div class="hl">Today's Sales</div>
+    <div class="hv num" id="statToday">₱0</div>
+    <div class="hs" id="statProductsLine">0 products in stock</div>
+  </div>
+
+  <div class="stat-grid">
+    <div class="stat owe"><div class="label">Total Utang</div><div class="value num" id="statUtang">₱0</div></div>
+    <div class="stat warn"><div class="label">Low Stock</div><div class="value num" id="statLow">0</div></div>
+  </div>
+  <div style="display:none;" id="statProductsHolder"><span id="statProducts">0</span></div>
+
+  <div class="section-label">Needs restocking</div>
+  <div class="card" id="lowStockCard"><div class="empty">Loading…</div></div>
+
+  <div style="display:flex; align-items:center; justify-content:space-between;">
+    <div class="section-label" style="margin:20px 0 9px;">Recent sales</div>
+    <span style="font-size:12px; font-weight:700; color:var(--wall); cursor:pointer;" onclick="goTo('history')">View all →</span>
+  </div>
+  <div class="card" id="recentSalesCard"><div class="empty">Loading…</div></div>
+
+  <div class="fab-row">
+    <button class="btn btn-coke btn-block" onclick="goTo('sales')">🛒 New Sale</button>
+    <button class="btn btn-outline btn-block" onclick="goTo('inventory')">📦 Inventory</button>
+  </div>
+</div>
+
+<!-- INVENTORY -->
+<div class="view" id="view-inventory">
+  <div class="search-bar">
+    <input type="text" id="invSearch" placeholder="Search products…" oninput="renderInventory()">
+    <button class="btn btn-coke" onclick="openProductModal()">+ Add</button>
+  </div>
+  <div class="chip-row" id="invCategoryChips"></div>
+  <div style="text-align:right; margin-bottom:8px;">
+    <span class="clear-all-link" id="invSortToggle" onclick="toggleInvSort()" style="border:none;">Sort: Name</span>
+  </div>
+  <div class="card" id="inventoryList"><div class="empty">Loading…</div></div>
+  <div id="invClearAllRow" style="text-align:center; margin-top:14px;">
+    <span class="clear-all-link" onclick="clearAllProductsConfirm()">Clear all products</span>
+  </div>
+</div>
+
+<!-- SALES (POS) -->
+<div class="view" id="view-sales">
+  <div class="search-bar">
+    <input type="text" id="posSearch" placeholder="Search products to add…" oninput="renderPos()">
+  </div>
+  <div class="chip-row" id="posCategoryChips"></div>
+  <div class="pos-grid" id="posGrid"></div>
+</div>
+
+<!-- UTANG -->
+<div class="view" id="view-utang">
+  <div class="search-bar">
+    <input type="text" id="custSearch" placeholder="Search customers…" oninput="renderCustomers()">
+    <button class="btn btn-coke" onclick="openCustomerModal()">+ Add</button>
+  </div>
+  <div class="card" id="customerList"><div class="empty">Loading…</div></div>
+</div>
+
+<!-- CUSTOMER DETAIL -->
+<div class="view" id="view-customer-detail">
+  <button class="btn btn-ghost btn-sm" onclick="goTo('utang')" style="margin-bottom:12px;">← Back to Utang</button>
+
+  <div class="balance-tag">
+    <div class="bt-name" id="cdName"></div>
+    <div class="bt-meta" id="cdMeta"></div>
+    <div class="bt-label">Balance</div>
+    <div class="bt-value num" id="cdBalance"></div>
+  </div>
+
+  <div class="fab-row" style="margin-top:0;">
+    <button class="btn btn-outline btn-block" onclick="openLedgerModal('charge')">+ Add Utang</button>
+    <button class="btn btn-primary btn-block" onclick="openLedgerModal('payment')">₱ Record Payment</button>
+  </div>
+
+  <div class="section-label">History</div>
+  <div class="notebook" id="ledgerHistory"></div>
+
+  <div style="text-align:center; margin-top:16px;">
+    <span class="clear-all-link" onclick="removeCustomerConfirm()">Remove customer</span>
+  </div>
+</div>
+
+<!-- SALES HISTORY -->
+<div class="view" id="view-history">
+  <button class="btn btn-ghost btn-sm" onclick="goTo('dashboard')" style="margin-bottom:12px;">← Back to Home</button>
+  <div class="section-label">Sales History</div>
+  <div class="chip-row" id="historyFilterChips"></div>
+  <div class="search-bar">
+    <input type="text" id="historySearch" placeholder="Search by product name…" oninput="renderHistory()">
+  </div>
+  <div class="card" style="margin-bottom:10px;" id="historySummaryCard"></div>
+  <div class="card" id="historyList"><div class="empty">Loading…</div></div>
+</div>
+
+<!-- SETTINGS -->
+<div class="view" id="view-settings">
+  <button class="btn btn-ghost btn-sm" onclick="goTo('dashboard')" style="margin-bottom:12px;">← Back to Home</button>
+
+  <div class="section-label">What This App Can Do</div>
+  <div class="card" style="font-size:13px; color:var(--ink-soft); line-height:1.6;">
+    <div><strong style="color:var(--ink);">Void a sale</strong> — open a sale from "View all" on the dashboard and tap Void if you rang something up by mistake. Stock and utang both reverse automatically.</div>
+    <div style="margin-top:10px;"><strong style="color:var(--ink);">Undo a delete</strong> — after removing a product or customer, a brief "Undo" button appears at the top of the screen.</div>
+    <div style="margin-top:10px;"><strong style="color:var(--ink);">Restore a backup</strong> — merge it into what's here, or replace everything, from this Settings screen.</div>
+  </div>
+
+  <div class="section-label">Backup &amp; Restore</div>
+  <div class="card">
+    <div style="font-size:13.5px; color:var(--ink-soft); margin-bottom:12px;">Your data lives only on this device. If you lose the phone, clear browser data, or switch devices, everything is gone unless you've saved a backup file somewhere safe — a cloud drive, email to yourself, etc.</div>
+    <button class="btn btn-primary btn-block" onclick="exportBackup()">⬇ Download Backup (.json)</button>
+    <button class="btn btn-outline btn-block" style="margin-top:10px;" onclick="document.getElementById('importFileInput').click()">⬆ Restore From Backup</button>
+    <input type="file" id="importFileInput" accept="application/json" style="display:none;" onchange="handleImportFile(event)">
+    <button class="btn btn-ghost btn-block" style="margin-top:10px;" onclick="exportProductsCsv()">Export Products as Spreadsheet (.csv)</button>
+  </div>
+
+  <div class="section-label">Storage Used</div>
+  <div class="card">
+    <div class="storage-bar"><div class="storage-bar-fill" id="storageBarFill"></div></div>
+    <div style="font-size:12px; color:var(--ink-soft); margin-top:8px;" id="storageUsageText">Calculating…</div>
+  </div>
+
+  <div class="section-label">App Lock</div>
+  <div class="card">
+    <div style="font-size:13.5px; color:var(--ink-soft); margin-bottom:12px;" id="pinDescription">Add a 4-digit PIN so a quick glance at your phone doesn't show your sales and customers' utang. This is a simple screen lock, not encryption — it keeps casual eyes out, not a determined one.</div>
+    <button class="btn btn-primary btn-block" id="pinSetBtn" onclick="openSetPinModal()">Set a PIN</button>
+    <button class="btn btn-coke btn-block" id="pinRemoveBtn" style="display:none; margin-top:10px;" onclick="openRemovePinModal()">Remove PIN</button>
+  </div>
+
+  <div class="section-label">About</div>
+  <div class="card" style="font-size:12.5px; color:var(--ink-soft);">Tindahan runs entirely on this device — nothing is sent to a server. All data stays in this browser's local storage.</div>
+</div>
+
+<!-- Bottom nav -->
+<div class="navbar">
+  <button class="navbtn active" data-view="dashboard" onclick="goTo('dashboard')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/></svg>
+    <span class="lb">Home</span>
+  </button>
+  <button class="navbtn" data-view="inventory" onclick="goTo('inventory')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8l-9-5-9 5 9 5 9-5z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/></svg>
+    <span class="lb">Stock</span>
+  </button>
+  <button class="navbtn" data-view="sales" onclick="goTo('sales')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1.4"/><circle cx="18" cy="21" r="1.4"/><path d="M2.5 3h2l2.6 12.6a2 2 0 002 1.6h8.4a2 2 0 002-1.6L21 7H6"/></svg>
+    <span class="lb">Bentahan</span>
+  </button>
+  <button class="navbtn" data-view="utang" onclick="goTo('utang')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h11a3 3 0 013 3v13l-3-2-3 2-3-2-3 2-3-2-2 2V6a2 2 0 012-2z"/><path d="M8 9h6M8 13h4"/></svg>
+    <span class="lb">Utang</span>
+  </button>
+</div>
+
+<!-- Cart bar -->
+<div class="cart-bar" id="cartBar" style="display:none;" onclick="openCartModal()">
+  <div><span class="sub" id="cartCount">0 items</span><span id="cartTotal">₱0</span></div>
+  <div style="font-size:13px;">View Cart →</div>
+</div>
+
+<!-- MODAL: Product add/edit -->
+<div class="modal-overlay hidden" id="modalProduct">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <h3 id="pmTitle">Add Product</h3>
+    <input type="hidden" id="pmId">
+
+    <label>Photo</label>
+    <div class="photo-picker" id="pmPhotoPicker" onclick="document.getElementById('pmImageInput').click()">
+      <img id="pmPhotoPreview" style="display:none;">
+      <div id="pmPhotoPlaceholder" class="photo-placeholder">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="22" height="22"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
+        <span>Add Photo</span>
+      </div>
+    </div>
+    <input type="file" id="pmImageInput" accept="image/*" capture="environment" style="display:none;" onchange="handleProductImageSelect(event)">
+    <button type="button" class="btn btn-ghost btn-sm" id="pmRemovePhotoBtn" style="display:none; margin:8px auto 0;" onclick="removeProductPhoto(event)">Remove photo</button>
+
+    <label>Product name</label>
+    <input type="text" id="pmName" placeholder="e.g. Lucky Me Pancit Canton">
+    <div class="row2">
+      <div><label>Price (₱)</label><input type="number" id="pmPrice" min="0" step="0.5"></div>
+      <div><label>Stock qty</label><input type="number" id="pmStock" min="0" step="1"></div>
+    </div>
+    <div class="row2">
+      <div><label>Unit</label><input type="text" id="pmUnit" placeholder="pcs, sachet, bottle"></div>
+      <div><label>Low stock alert at</label><input type="number" id="pmLow" min="0" step="1" value="5"></div>
+    </div>
+    <label>Category</label>
+    <select id="pmCategory"></select>
+    <div class="fab-row">
+      <button class="btn btn-ghost btn-block" onclick="closeModal('modalProduct')">Cancel</button>
+      <button class="btn btn-primary btn-block" onclick="saveProduct()">Save</button>
+    </div>
+    <button class="btn btn-coke btn-block" style="margin-top:10px; display:none;" id="pmDeleteBtn" onclick="deleteProductConfirm()">Remove product</button>
+  </div>
+</div>
+
+<!-- MODAL: Cart / checkout -->
+<div class="modal-overlay hidden" id="modalCart">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <h3>Your Cart</h3>
+    <div id="cartAdjustBanner" style="display:none; margin-top:8px; padding:10px 12px; background:var(--gold-tint); border-radius:10px; color:var(--gold); font-size:12.5px; font-weight:700;"></div>
+    <div id="cartLines" style="margin-top:8px;"></div>
+    <div class="receipt-total" style="margin-top:10px;"><span>Total</span><span class="num" id="cartModalTotal">₱0</span></div>
+
+    <label>Payment</label>
+    <div class="row2">
+      <button class="btn btn-primary" id="payCashBtn" onclick="setPayMethod('cash')">💵 Cash</button>
+      <button class="btn btn-outline" id="payUtangBtn" onclick="setPayMethod('utang')">📒 Utang</button>
+    </div>
+    <div id="utangCustomerPicker" style="display:none;">
+      <label>Charge to</label>
+      <select id="utangCustomerSelect"></select>
+    </div>
+
+    <div class="fab-row">
+      <button class="btn btn-ghost btn-block" onclick="closeModal('modalCart')">Keep Shopping</button>
+      <button class="btn btn-coke btn-block" onclick="confirmCheckout()">Complete Sale</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Confirm sale -->
+<div class="modal-overlay hidden" id="modalConfirmSale">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <h3>Confirm this sale?</h3>
+    <div id="confirmSaleBody" style="margin-top:10px; font-size:14px;"></div>
+    <div class="fab-row">
+      <button class="btn btn-ghost btn-block" onclick="closeModal('modalConfirmSale')">Cancel</button>
+      <button class="btn btn-coke btn-block" id="confirmSaleBtn" onclick="finalizeCheckout()">Yes, Complete Sale</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Receipt -->
+<div class="modal-overlay hidden" id="modalReceipt">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="receipt" id="receiptBody"></div>
+    <button class="btn btn-primary btn-block" style="margin-top:16px;" onclick="closeReceipt()">Done</button>
+  </div>
+</div>
+
+<!-- MODAL: Add customer -->
+<div class="modal-overlay hidden" id="modalCustomer">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <h3>Add Customer</h3>
+    <label>Name</label>
+    <input type="text" id="cmName" placeholder="e.g. Aling Rosa">
+    <label>Notes (optional)</label>
+    <input type="text" id="cmNote" placeholder="e.g. Purok 3, tricycle driver">
+    <div class="fab-row">
+      <button class="btn btn-ghost btn-block" onclick="closeModal('modalCustomer')">Cancel</button>
+      <button class="btn btn-primary btn-block" onclick="saveCustomer()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Ledger entry -->
+<div class="modal-overlay hidden" id="modalLedger">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <h3 id="lmTitle">Add Utang</h3>
+    <label>Amount (₱)</label>
+    <input type="number" id="lmAmount" min="0" step="1">
+    <label>Note (optional)</label>
+    <input type="text" id="lmNote" placeholder="e.g. rice, sardines, ice">
+    <div class="fab-row">
+      <button class="btn btn-ghost btn-block" onclick="closeModal('modalLedger')">Cancel</button>
+      <button class="btn btn-primary btn-block" onclick="saveLedgerEntry()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Confirm import (overwrites everything) -->
+<div class="modal-overlay hidden" id="modalImportConfirm">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <h3>Restore this backup?</h3>
+    <div id="importSummary" style="margin-top:10px; font-size:14px; color:var(--ink-soft);"></div>
+    <div class="import-mode-row">
+      <label class="import-mode-opt">
+        <input type="radio" name="importMode" value="merge" checked>
+        <div><strong>Merge</strong><span>Add these on top of what's already on this device. Nothing already here gets removed.</span></div>
+      </label>
+      <label class="import-mode-opt">
+        <input type="radio" name="importMode" value="replace">
+        <div><strong>Replace everything</strong><span>Wipe what's on this device and use only what's in the backup file.</span></div>
+      </label>
+    </div>
+    <div id="importWarning" style="display:none; margin-top:8px; padding:10px 12px; background:var(--coke-tint); border-radius:10px; color:var(--coke-deep); font-size:13px; font-weight:700;">This replaces everything currently on this device. This can't be undone.</div>
+    <div class="fab-row">
+      <button class="btn btn-ghost btn-block" onclick="cancelImport()">Cancel</button>
+      <button class="btn btn-primary btn-block" onclick="confirmImport()">Restore</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Set PIN -->
+<div class="modal-overlay hidden" id="modalSetPin">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <h3>Set a PIN</h3>
+    <div style="font-size:12.5px; color:var(--coke-deep); font-weight:700; margin-top:6px;">Your data gets encrypted using this PIN. If you forget it, there's no way to recover it — not by me, not by reinstalling. Keep a backup if that's a risk you'd rather avoid.</div>
+    <label>Enter a 4-digit PIN</label><input type="password" inputmode="numeric" maxlength="4" id="spPin1" placeholder="••••">
+    <label>Confirm PIN</label><input type="password" inputmode="numeric" maxlength="4" id="spPin2" placeholder="••••">
+    <div id="spError" class="field-error" style="display:none;"></div>
+    <div class="fab-row">
+      <button class="btn btn-ghost btn-block" onclick="closeModal('modalSetPin')">Cancel</button>
+      <button class="btn btn-primary btn-block" onclick="saveNewPin()">Save PIN</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Remove PIN -->
+<div class="modal-overlay hidden" id="modalRemovePin">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <h3>Remove PIN</h3>
+    <label>Enter your current PIN to confirm</label><input type="password" inputmode="numeric" maxlength="4" id="rpPin" placeholder="••••">
+    <div id="rpError" class="field-error" style="display:none;"></div>
+    <div class="fab-row">
+      <button class="btn btn-ghost btn-block" onclick="closeModal('modalRemovePin')">Cancel</button>
+      <button class="btn btn-coke btn-block" onclick="confirmRemovePin()">Remove PIN</button>
+    </div>
+  </div>
+</div>
+
+<!-- LOCK SCREEN -->
+<div class="lock-screen hidden" id="lockScreen">
+  <div class="lock-box">
+    <div class="lock-icon">🔒</div>
+    <div class="lock-title">Enter PIN</div>
+    <input type="password" inputmode="numeric" maxlength="4" id="lockPinInput" class="lock-input" autocomplete="off">
+    <div id="lockError" class="field-error" style="display:none; text-align:center;">Wrong PIN, try again</div>
+    <button class="btn btn-primary btn-block" style="margin-top:14px;" id="lockUnlockBtn" onclick="attemptUnlock()">Unlock</button>
+  </div>
+</div>
+
+<!-- MODAL: Confirm void sale -->
+<div class="modal-overlay hidden" id="modalVoidSale">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <h3>Void this sale?</h3>
+    <div id="voidSaleBody" style="margin-top:10px; font-size:14px; color:var(--ink-soft);"></div>
+    <div style="margin-top:8px; font-size:12.5px; color:var(--ink-soft);">The sale stays in history marked "Voided" for your records — it just stops counting toward totals.</div>
+    <div class="fab-row">
+      <button class="btn btn-ghost btn-block" onclick="closeModal('modalVoidSale')">Cancel</button>
+      <button class="btn btn-coke btn-block" onclick="voidSale()">Yes, Void Sale</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Confirm remove customer -->
+<div class="modal-overlay hidden" id="modalRemoveCustomer">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <h3>Remove <span id="rcName"></span>?</h3>
+    <div id="rcWarning" style="display:none; margin-top:10px; padding:10px 12px; background:var(--coke-tint); border-radius:10px; color:var(--coke-deep); font-size:13px; font-weight:700;"></div>
+    <div style="margin-top:10px; font-size:14px; color:var(--ink-soft);">This deletes their record and payment history from this device. This can't be undone.</div>
+    <div class="fab-row">
+      <button class="btn btn-ghost btn-block" onclick="closeModal('modalRemoveCustomer')">Cancel</button>
+      <button class="btn btn-coke btn-block" onclick="removeCustomer()">Yes, Remove</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Confirm clear all products -->
+<div class="modal-overlay hidden" id="modalClearProducts">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <h3>Clear all products?</h3>
+    <div style="margin-top:10px; font-size:14px; color:var(--ink-soft);">This removes every product from your inventory on this device. Sales already recorded and utang balances are not affected. This can't be undone.</div>
+    <div class="fab-row">
+      <button class="btn btn-ghost btn-block" onclick="closeModal('modalClearProducts')">Cancel</button>
+      <button class="btn btn-coke btn-block" onclick="clearAllProducts()">Yes, Clear All</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
