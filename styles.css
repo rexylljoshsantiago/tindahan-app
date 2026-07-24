@@ -314,7 +314,8 @@
   .modal-overlay{ position:fixed; inset:0; background:rgba(29,76,88,0.45); z-index:40; display:flex; align-items:flex-end; justify-content:center; }
   .modal-overlay.hidden{ display:none; }
   .modal{ background:var(--paper); width:100%; max-width:640px; border-radius:22px 22px 0 0; padding:18px 18px 26px; max-height:86vh; overflow-y:auto; }
-  .modal-handle{ width:38px; height:4px; background:var(--line); border-radius:99px; margin:0 auto 14px; }
+  .modal-handle{ width:38px; height:4px; background:var(--line); border-radius:99px; margin:0 auto 14px; cursor:grab; touch-action:none; }
+  .modal{ touch-action:pan-y; }
   .cart-line{ display:flex; align-items:center; justify-content:space-between; padding:10px 0; border-bottom:1px dashed var(--line); }
   .cart-line:last-child{ border-bottom:none; }
   .qty-ctrl{ display:flex; align-items:center; gap:8px; }

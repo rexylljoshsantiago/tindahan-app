@@ -1202,6 +1202,60 @@ function openModal(id){
   if(focusable) setTimeout(()=>focusable.focus(), 30);
 }
 function closeModal(id){ document.getElementById(id).classList.add('hidden'); }
+
+/* ---------------- Modal swipe-to-dismiss ---------------- */
+// The little bar at the top of each modal (.modal-handle) is a drag grip —
+// wire it up so dragging it down far enough closes the sheet, matching how
+// it looks. Only the handle itself captures the drag so scrolling the
+// modal's content still works normally.
+function initModalSwipeToDismiss(){
+  document.querySelectorAll('.modal-overlay').forEach(overlay=>{
+    const modal = overlay.querySelector('.modal');
+    const handle = overlay.querySelector('.modal-handle');
+    if(!modal || !handle) return;
+
+    const DISMISS_THRESHOLD = 90; // px of downward drag needed to close
+    let startY = 0, deltaY = 0, dragging = false;
+
+    function getY(e){ return e.touches ? e.touches[0].clientY : e.clientY; }
+
+    function onStart(e){
+      dragging = true;
+      startY = getY(e);
+      deltaY = 0;
+      modal.style.transition = 'none';
+    }
+    function onMove(e){
+      if(!dragging) return;
+      deltaY = Math.max(0, getY(e) - startY); // only allow dragging downward
+      modal.style.transform = `translateY(${deltaY}px)`;
+      if(e.cancelable) e.preventDefault();
+    }
+    function onEnd(){
+      if(!dragging) return;
+      dragging = false;
+      modal.style.transition = 'transform 0.2s ease';
+      if(deltaY > DISMISS_THRESHOLD){
+        modal.style.transform = 'translateY(100%)';
+        setTimeout(()=>{
+          overlay.classList.add('hidden');
+          modal.style.transition = '';
+          modal.style.transform = '';
+        }, 180);
+      }else{
+        modal.style.transform = '';
+      }
+    }
+
+    handle.addEventListener('touchstart', onStart, {passive:true});
+    handle.addEventListener('touchmove', onMove, {passive:false});
+    handle.addEventListener('touchend', onEnd);
+    handle.addEventListener('mousedown', onStart);
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onEnd);
+  });
+}
+initModalSwipeToDismiss();
 document.addEventListener('keydown', (e)=>{
   if(e.key !== 'Escape') return;
   document.querySelectorAll('.modal-overlay:not(.hidden)').forEach(m=>m.classList.add('hidden'));
